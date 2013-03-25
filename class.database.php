@@ -149,7 +149,6 @@ class Database {
         } else {
             $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
         }
-		var_dump($query);
         $Statement = $this->oPDO->prepare($query);
         if ($where !== false) {
             for ($i = 0; $i < count($where); $i++) {

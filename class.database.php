@@ -16,7 +16,7 @@ class Database {
         }
     }
 
-    public static function TimeStamp($date = null) {
+    public static function NOW($date = null) {
         $date = $date == null ? time() : $date;
         return date('Y-m-d H:i:s', $date);
     }
@@ -78,7 +78,7 @@ class Database {
         }
     }
 
-    public function QueryOutputId($query, $redefname, $limit = false) {
+    public function QueryOutputId($query, $redefname) {
         $Statement = $this->oPDO->prepare($query);
         for ($i = 0; $i < count($redefname); $i++) {
             $vzxx = array_values($redefname);

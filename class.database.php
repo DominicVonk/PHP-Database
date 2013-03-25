@@ -1,5 +1,7 @@
 <?php
+
 use PDO;
+
 class Database {
 
     private $oPDO;
@@ -18,11 +20,11 @@ class Database {
         $date = $date == null ? time() : $date;
         return date('Y-m-d H:i:s', $date);
     }
-    
+
     public function Insert($table, $input) {
         $table = explode(', ', $table);
-		$table = implode('`,`', $table);
-		$namex = "";
+        $table = implode('`,`', $table);
+        $namex = "";
         $valuex = "";
         for ($i = 0; $i < count($input); $i++) {
             $inps = array_keys($input);
@@ -54,7 +56,7 @@ class Database {
         return $this->oPDO->lastInsertId();
     }
 
-    public function SelectQuery($query, $redefname, $limit = false) {
+    public function QueryOutputFetch($query, $redefname, $limit = false) {
         $Statement = $this->oPDO->prepare($query);
         for ($i = 0; $i < count($redefname); $i++) {
             $vzxx = array_values($redefname);
@@ -76,24 +78,78 @@ class Database {
         }
     }
 
+    public function QueryOutputId($query, $redefname, $limit = false) {
+        $Statement = $this->oPDO->prepare($query);
+        for ($i = 0; $i < count($redefname); $i++) {
+            $vzxx = array_values($redefname);
+            $vzxs = array_keys($redefname);
+            $vzxx = $vzxx[$i];
+            $vzxs = $vzxs[$i];
+            $xco = $vzxs;
+            $Statement->bindValue($xco, $vzxx);
+        }
+        $Statement->execute();
+        return $this->oPDO->lastInsertId();
+    }
+
     public function Select($table, $name, $where = false, $limit = false, $orderby = false, $asc = true) {
         $table = explode(', ', $table);
-		$table = implode('`,`', $table);
-		if ($where !== false) {
+        $table = implode('`,`', $table);
+        if ($where !== false) {
             $wherex = "";
 
             for ($i = 0; $i < count($where); $i++) {
                 $inps = array_keys($where);
                 if ($i === 0) {
-                    $wherex .= '`' . $inps[$i] . "` = :where" . $i;
+                    $value = $inps[$i];
+                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                        $operator = substr($value, 0, 1);
+                        $remainings = substr($value, 1);
+                        if ($operator == "!") {
+                            $wherex .= "`" . $remainings . "` != :where" . $i;
+                        } else if ($operator == ">") {
+                            $wherex .= "`" . $remainings . "` > :where" . $i;
+                        } else if ($operator == "<") {
+                            $wherex .= "`" . $remainings . "` < :where" . $i;
+                        } else if ($operator == "~") {
+                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                        } else if ($operator == "^") {
+                            $wherex .= "`" . $remainings . "` >= :where" . $i;
+                        } else {
+                            $wherex .= "`" . $remainings . "` <= :where" . $i;
+                        }
+                    } else {
+                        $wherex .= "`" . $value . "` = :where" . $i;
+                    }
                 } else {
-                    $wherex .= " AND `" . $inps[$i] . "` = :where" . $i;
+                    $wherex .= " AND ";
+                    $value = $inps[$i];
+                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                        $operator = substr($value, 0, 1);
+                        $remainings = substr($value, 1);
+                        if ($operator == "!") {
+                            $wherex .= "`" . $remainings . "` != :where" . $i;
+                        } else if ($operator == ">") {
+                            $wherex .= "`" . $remainings . "` > :where" . $i;
+                        } else if ($operator == "<") {
+                            $wherex .= "`" . $remainings . "` < :where" . $i;
+                        } else if ($operator == "~") {
+                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                        } else if ($operator == "^") {
+                            $wherex .= "`" . $remainings . "` >= :where" . $i;
+                        } else {
+                            $wherex .= "`" . $remainings . "` <= :where" . $i;
+                        }
+                    } else {
+                        $wherex .= "`" . $value . "` = :where" . $i;
+                    }
                 }
             }
-            $query = "SELECT `" . implode('`,`', $name) . "` FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
+            $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . " FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
         } else {
-            $query = "SELECT `" . implode('`,`', $name) . "`  FROM `" . $table . "`"  .(($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
+            $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
         }
+		var_dump($query);
         $Statement = $this->oPDO->prepare($query);
         if ($where !== false) {
             for ($i = 0; $i < count($where); $i++) {
@@ -122,12 +178,50 @@ class Database {
             for ($i = 0; $i < count($where); $i++) {
                 $inps = array_keys($where);
                 if ($i === 0) {
-                    $wherex .=  "`" . $inps[$i] . "` = :where" . $i;
+                    $value = $inps[$i];
+                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                        $operator = substr($value, 0, 1);
+                        $remainings = substr($value, 1);
+                        if ($operator == "!") {
+                            $wherex .= "`" . $remainings . "` != :where" . $i;
+                        } else if ($operator == ">") {
+                            $wherex .= "`" . $remainings . "` > :where" . $i;
+                        } else if ($operator == "<") {
+                            $wherex .= "`" . $remainings . "` < :where" . $i;
+                        } else if ($operator == "~") {
+                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                        } else if ($operator == "^") {
+                            $wherex .= "`" . $remainings . "` >= :where" . $i;
+                        } else {
+                            $wherex .= "`" . $remainings . "` <= :where" . $i;
+                        }
+                    } else {
+                        $wherex .= "`" . $value . "` = :where" . $i;
+                    }
                 } else {
-                    $wherex .= " AND `" . $inps[$i] . "` = :where" . $i;
+                    $wherex .= " AND ";
+                    $value = $inps[$i];
+                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                        $operator = substr($value, 0, 1);
+                        $remainings = substr($value, 1);
+                        if ($operator == "!") {
+                            $wherex .= "`" . $remainings . "` != :where" . $i;
+                        } else if ($operator == ">") {
+                            $wherex .= "`" . $remainings . "` > :where" . $i;
+                        } else if ($operator == "<") {
+                            $wherex .= "`" . $remainings . "` < :where" . $i;
+                        } else if ($operator == "~") {
+                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                        } else if ($operator == "^") {
+                            $wherex .= "`" . $remainings . "` >= :where" . $i;
+                        } else {
+                            $wherex .= "`" . $remainings . "` <= :where" . $i;
+                        }
+                    } else {
+                        $wherex .= "`" . $value . "` = :where" . $i;
+                    }
                 }
             }
-
             $query = "SELECT COUNT(*) FROM `" . $table . "` WHERE " . $wherex;
         } else {
             $query = "SELECT COUNT(*)  FROM `" . $table . "`";
@@ -150,14 +244,53 @@ class Database {
 
     public function Delete($table, $where) {
         $wherex = "";
-		$table = explode(', ', $table);
-		$table = implode('`,`', $table);
+        $table = explode(', ', $table);
+        $table = implode('`,`', $table);
         for ($i = 0; $i < count($where); $i++) {
             $inps = array_keys($where);
             if ($i === 0) {
-                $wherex .= "`" . $inps[$i] . "` = :where" . $i;
+                $value = $inps[$i];
+                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                    $operator = substr($value, 0, 1);
+                    $remainings = substr($value, 1);
+                    if ($operator == "!") {
+                        $wherex .= "`" . $remainings . "` != :where" . $i;
+                    } else if ($operator == ">") {
+                        $wherex .= "`" . $remainings . "` > :where" . $i;
+                    } else if ($operator == "<") {
+                        $wherex .= "`" . $remainings . "` < :where" . $i;
+                    } else if ($operator == "~") {
+                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                    } else if ($operator == "^") {
+                        $wherex .= "`" . $remainings . "` >= :where" . $i;
+                    } else {
+                        $wherex .= "`" . $remainings . "` <= :where" . $i;
+                    }
+                } else {
+                    $wherex .= "`" . $value . "` = :where" . $i;
+                }
             } else {
-                $wherex .= "AND `" . $inps[$i] . "` = :where" . $i;
+                $wherex .= " AND ";
+                $value = $inps[$i];
+                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                    $operator = substr($value, 0, 1);
+                    $remainings = substr($value, 1);
+                    if ($operator == "!") {
+                        $wherex .= "`" . $remainings . "` != :where" . $i;
+                    } else if ($operator == ">") {
+                        $wherex .= "`" . $remainings . "` > :where" . $i;
+                    } else if ($operator == "<") {
+                        $wherex .= "`" . $remainings . "` < :where" . $i;
+                    } else if ($operator == "~") {
+                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                    } else if ($operator == "^") {
+                        $wherex .= "`" . $remainings . "` >= :where" . $i;
+                    } else {
+                        $wherex .= "`" . $remainings . "` <= :where" . $i;
+                    }
+                } else {
+                    $wherex .= "`" . $value . "` = :where" . $i;
+                }
             }
         }
         $query = "DELETE FROM `" . $table . "` WHERE " . $wherex;
@@ -172,11 +305,13 @@ class Database {
         $Statement->execute();
     }
 
+    private $selecttypes = array("!", ">", "<", "~", "^", "%");
+
     public function Edit($table, $where, $input) {
         $valuex = "";
         $wherex = "";
-		$table = explode(', ', $table);
-		$table = implode('`,`', $table);
+        $table = explode(', ', $table);
+        $table = implode('`,`', $table);
         for ($i = 0; $i < count($input); $i++) {
             $inps = array_keys($input);
             if ($i === 0) {
@@ -188,10 +323,48 @@ class Database {
         for ($i = 0; $i < count($where); $i++) {
             $inps = array_keys($where);
             if ($i === 0) {
-
-                $wherex .= "`" . $inps[$i] . "` = :where" . $i;
+                $value = $inps[$i];
+                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                    $operator = substr($value, 0, 1);
+                    $remainings = substr($value, 1);
+                    if ($operator == "!") {
+                        $wherex .= "`" . $remainings . "` != :where" . $i;
+                    } else if ($operator == ">") {
+                        $wherex .= "`" . $remainings . "` > :where" . $i;
+                    } else if ($operator == "<") {
+                        $wherex .= "`" . $remainings . "` < :where" . $i;
+                    } else if ($operator == "~") {
+                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                    } else if ($operator == "^") {
+                        $wherex .= "`" . $remainings . "` >= :where" . $i;
+                    } else {
+                        $wherex .= "`" . $remainings . "` <= :where" . $i;
+                    }
+                } else {
+                    $wherex .= "`" . $value . "` = :where" . $i;
+                }
             } else {
-                $wherex .= "AND `" . $inps[$i] . "` = :where" . $i;
+                $wherex .= " AND ";
+                $value = $inps[$i];
+                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                    $operator = substr($value, 0, 1);
+                    $remainings = substr($value, 1);
+                    if ($operator == "!") {
+                        $wherex .= "`" . $remainings . "` != :where" . $i;
+                    } else if ($operator == ">") {
+                        $wherex .= "`" . $remainings . "` > :where" . $i;
+                    } else if ($operator == "<") {
+                        $wherex .= "`" . $remainings . "` < :where" . $i;
+                    } else if ($operator == "~") {
+                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
+                    } else if ($operator == "^") {
+                        $wherex .= "`" . $remainings . "` >= :where" . $i;
+                    } else {
+                        $wherex .= "`" . $remainings . "` <= :where" . $i;
+                    }
+                } else {
+                    $wherex .= "`" . $value . "` = :where" . $i;
+                }
             }
         }
         $query = "UPDATE `" . $table . "` SET " . $valuex . " WHERE " . $wherex;

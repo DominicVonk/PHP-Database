@@ -20,7 +20,9 @@ class Database {
     }
     
     public function Insert($table, $input) {
-        $namex = "";
+        $table = explode(', ', $table);
+		$table = implode('`,`', $table);
+		$namex = "";
         $valuex = "";
         for ($i = 0; $i < count($input); $i++) {
             $inps = array_keys($input);
@@ -75,7 +77,9 @@ class Database {
     }
 
     public function Select($table, $name, $where = false, $limit = false, $orderby = false, $asc = true) {
-        if ($where !== false) {
+        $table = explode(', ', $table);
+		$table = implode('`,`', $table);
+		if ($where !== false) {
             $wherex = "";
 
             for ($i = 0; $i < count($where); $i++) {
@@ -146,7 +150,8 @@ class Database {
 
     public function Delete($table, $where) {
         $wherex = "";
-
+		$table = explode(', ', $table);
+		$table = implode('`,`', $table);
         for ($i = 0; $i < count($where); $i++) {
             $inps = array_keys($where);
             if ($i === 0) {
@@ -170,6 +175,8 @@ class Database {
     public function Edit($table, $where, $input) {
         $valuex = "";
         $wherex = "";
+		$table = explode(', ', $table);
+		$table = implode('`,`', $table);
         for ($i = 0; $i < count($input); $i++) {
             $inps = array_keys($input);
             if ($i === 0) {

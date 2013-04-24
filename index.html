@@ -31,16 +31,134 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3>Welcome to GitHub Pages.</h3>
+        <h1>PHP Database Documentation</h1>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<h2>Construct DB Class</h2>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+<div class="highlight"><pre><span class="k">include_once</span><span class="p">(</span><span class="s1">'class.database.php'</span><span class="p">);</span> <span class="c1">//The location of the database class  </span>
+<span class="nv">$dbhost</span> <span class="o">=</span> <span class="s2">"localhost"</span><span class="p">;</span> <span class="c1">//Hostname  </span>
+<span class="nv">$dbname</span> <span class="o">=</span> <span class="s2">"myfirstdatabase"</span><span class="p">;</span> <span class="c1">//Database name  </span>
+<span class="nv">$dbuser</span> <span class="o">=</span> <span class="s2">"root"</span><span class="p">;</span> <span class="c1">//Database user  </span>
+<span class="nv">$dbpass</span> <span class="o">=</span> <span class="s2">""</span><span class="p">;</span> <span class="c1">//Database user password  </span>
+<span class="nv">$db</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Database</span><span class="p">(</span><span class="s2">"mysql:host="</span><span class="o">.</span><span class="nv">$dbhost</span><span class="o">.</span><span class="s2">";dbname="</span><span class="o">.</span><span class="nv">$dbname</span><span class="o">.</span> <span class="s2">";"</span><span class="p">,</span> <span class="nv">$dbuser</span><span class="p">,</span> <span class="nv">$dbpass</span><span class="p">);</span>
+</pre></div>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<h2>Insert</h2>
+
+<h3>Code Pattern</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Insert</span><span class="p">(</span><span class="nx">string</span> <span class="nx">TableName</span><span class="p">,</span> <span class="k">array</span> <span class="nx">Input</span><span class="p">);</span>
+</pre></div>
+
+<h3>Example</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Insert</span><span class="p">(</span><span class="s1">'tablename'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s2">"example@email.com"</span><span class="p">));</span>
+</pre></div>
+
+<h2>Update</h2>
+
+<h3>Code Pattern</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Update</span><span class="p">(</span><span class="nx">string</span> <span class="nx">TableName</span><span class="p">,</span> <span class="k">array</span> <span class="nx">Where</span><span class="p">,</span> <span class="k">array</span> <span class="nx">Input</span><span class="p">);</span>
+</pre></div>
+
+<h3>Example</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Update</span><span class="p">(</span><span class="s1">'tablename'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s2">"example@email.com"</span><span class="p">),</span> <span class="k">array</span><span class="p">(</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s2">""</span><span class="p">));</span>
+</pre></div>
+
+<h2>Delete</h2>
+
+<h3>Code Pattern</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Delete</span><span class="p">(</span><span class="nx">string</span> <span class="nx">TableName</span><span class="p">,</span> <span class="k">array</span> <span class="nx">Where</span><span class="p">);</span>
+</pre></div>
+
+<h3>Example</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Delete</span><span class="p">(</span><span class="s1">'tablename'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s2">"example@email.com"</span><span class="p">));</span>
+</pre></div>
+
+<h2>Select</h2>
+
+<h3>Code Pattern</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Select</span><span class="p">(</span><span class="nx">string</span> <span class="nx">TableName</span><span class="p">,</span> <span class="k">array</span> <span class="nx">What</span><span class="p">,</span> <span class="nx">optional</span> <span class="k">array</span> <span class="nx">Where</span><span class="p">,</span> <span class="nx">optional</span> <span class="p">(</span><span class="k">default</span><span class="o">:</span> <span class="mi">0</span><span class="p">)</span> <span class="nx">int</span><span class="o">/</span><span class="nx">bool</span> <span class="nx">limit</span> <span class="p">,</span> <span class="nx">optional</span> <span class="p">(</span><span class="k">default</span><span class="o">:</span> <span class="k">empty</span><span class="p">)</span> <span class="nx">string</span> <span class="nx">OrderBy</span><span class="p">,</span> <span class="nx">optional</span> <span class="p">(</span><span class="k">default</span><span class="o">:</span> <span class="k">true</span><span class="p">)</span> <span class="nx">bool</span> <span class="nx">Ascending</span><span class="p">);</span>
+</pre></div>
+
+<h3>Example</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Select</span><span class="p">(</span><span class="s1">'user'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"rights"</span><span class="p">),</span> <span class="k">array</span><span class="p">(</span><span class="s2">"name"</span> <span class="o">=&gt;</span> <span class="s2">"Dominic"</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s2">"!name"</span> <span class="o">=&gt;</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"rights"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">)));</span>
+</pre></div>
+
+<h2>SelectCount</h2>
+
+<h3>Code Pattern</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">SelectCount</span><span class="p">(</span><span class="nx">string</span> <span class="nx">TableName</span><span class="p">,</span> <span class="k">array</span> <span class="nx">Where</span><span class="p">);</span>
+</pre></div>
+
+<h3>Example</h3>
+
+<div class="highlight"><pre><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">SelectCount</span><span class="p">(</span><span class="s1">'tablename'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s2">"example@email.com"</span><span class="p">));</span>
+</pre></div>
+
+<h2>Where Statement</h2>
+
+<h3>Default</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</pre></div>
+
+<h3>Equals</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id = '1'</span>
+</pre></div>
+
+<h3>Not Equals</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"!id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id != '1'</span>
+</pre></div>
+
+<h3>Above</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"&gt;id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id &gt; '1'</span>
+</pre></div>
+
+<h3>Below</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"&lt;id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id &lt; '1'</span>
+</pre></div>
+
+<h3>Above or Equals</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"^id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id &gt;= '1'</span>
+</pre></div>
+
+<h3>Below or Equals</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"%id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id &lt;= '1'</span>
+</pre></div>
+
+<h3>Like</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"~id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">);</span> <span class="c1">// id LIKE '1'</span>
+</pre></div>
+
+<h3>AND</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">,</span> <span class="s2">"name"</span> <span class="o">=&gt;</span> <span class="s2">"Dominic"</span><span class="p">);</span> <span class="c1">// id = '1' AND name = 'Dominic'</span>
+</pre></div>
+
+<h3>OR</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"name"</span> <span class="o">=&gt;</span> <span class="s2">"Dominic"</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s2">"id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">,</span> <span class="s2">"id"</span> <span class="o">=&gt;</span> <span class="s2">"2"</span><span class="p">));</span> <span class="c1">// name = 'Dominic' AND (id = '1' OR id = '2')</span>
+</pre></div>
+
+<h3>OR AND</h3>
+
+<div class="highlight"><pre><span class="nv">$where</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s2">"name"</span> <span class="o">=&gt;</span> <span class="s2">"Dominic"</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s2">"id"</span> <span class="o">=&gt;</span> <span class="s2">"1"</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s2">"id"</span> <span class="o">=&gt;</span> <span class="s2">"2"</span><span class="p">,</span> <span class="s2">"key"</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">)));</span> <span class="c1">// name = 'Dominic' AND (id = '1' OR (id = '2' AND key = '1'))</span>
+</pre></div>
       </section>
     </div>
 

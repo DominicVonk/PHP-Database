@@ -1,7 +1,5 @@
 <?php
 
-use PDO;
-
 class Database {
 
     private $oPDO;
@@ -97,64 +95,18 @@ class Database {
         $table = implode('`,`', $table);
         if ($where !== false) {
             $wherex = "";
-
-            for ($i = 0; $i < count($where); $i++) {
-                $inps = array_keys($where);
-                if ($i === 0) {
-                    $value = $inps[$i];
-                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                        $operator = substr($value, 0, 1);
-                        $remainings = substr($value, 1);
-                        if ($operator == "!") {
-                            $wherex .= "`" . $remainings . "` != :where" . $i;
-                        } else if ($operator == ">") {
-                            $wherex .= "`" . $remainings . "` > :where" . $i;
-                        } else if ($operator == "<") {
-                            $wherex .= "`" . $remainings . "` < :where" . $i;
-                        } else if ($operator == "~") {
-                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                        } else if ($operator == "^") {
-                            $wherex .= "`" . $remainings . "` >= :where" . $i;
-                        } else {
-                            $wherex .= "`" . $remainings . "` <= :where" . $i;
-                        }
-                    } else {
-                        $wherex .= "`" . $value . "` = :where" . $i;
-                    }
-                } else {
-                    $wherex .= " AND ";
-                    $value = $inps[$i];
-                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                        $operator = substr($value, 0, 1);
-                        $remainings = substr($value, 1);
-                        if ($operator == "!") {
-                            $wherex .= "`" . $remainings . "` != :where" . $i;
-                        } else if ($operator == ">") {
-                            $wherex .= "`" . $remainings . "` > :where" . $i;
-                        } else if ($operator == "<") {
-                            $wherex .= "`" . $remainings . "` < :where" . $i;
-                        } else if ($operator == "~") {
-                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                        } else if ($operator == "^") {
-                            $wherex .= "`" . $remainings . "` >= :where" . $i;
-                        } else {
-                            $wherex .= "`" . $remainings . "` <= :where" . $i;
-                        }
-                    } else {
-                        $wherex .= "`" . $value . "` = :where" . $i;
-                    }
-                }
-            }
+            $q = array();
+            $wherex .= $this->QueryRecursive($q, $where);
+            
             $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . " FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
         } else {
             $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
         }
         $Statement = $this->oPDO->prepare($query);
         if ($where !== false) {
-            for ($i = 0; $i < count($where); $i++) {
-                $vzxx = array_values($where);
-                $vzxx = $vzxx[$i];
-                $xco = ":where" . $i;
+            foreach ($q as $key => $where) {
+                $vzxx = $where;
+                $xco = $key;
                 $Statement->bindValue($xco, $vzxx);
             }
         }
@@ -173,54 +125,8 @@ class Database {
     public function SelectCount($table, $where = false) {
         if ($where !== false) {
             $wherex = "";
-
-            for ($i = 0; $i < count($where); $i++) {
-                $inps = array_keys($where);
-                if ($i === 0) {
-                    $value = $inps[$i];
-                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                        $operator = substr($value, 0, 1);
-                        $remainings = substr($value, 1);
-                        if ($operator == "!") {
-                            $wherex .= "`" . $remainings . "` != :where" . $i;
-                        } else if ($operator == ">") {
-                            $wherex .= "`" . $remainings . "` > :where" . $i;
-                        } else if ($operator == "<") {
-                            $wherex .= "`" . $remainings . "` < :where" . $i;
-                        } else if ($operator == "~") {
-                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                        } else if ($operator == "^") {
-                            $wherex .= "`" . $remainings . "` >= :where" . $i;
-                        } else {
-                            $wherex .= "`" . $remainings . "` <= :where" . $i;
-                        }
-                    } else {
-                        $wherex .= "`" . $value . "` = :where" . $i;
-                    }
-                } else {
-                    $wherex .= " AND ";
-                    $value = $inps[$i];
-                    if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                        $operator = substr($value, 0, 1);
-                        $remainings = substr($value, 1);
-                        if ($operator == "!") {
-                            $wherex .= "`" . $remainings . "` != :where" . $i;
-                        } else if ($operator == ">") {
-                            $wherex .= "`" . $remainings . "` > :where" . $i;
-                        } else if ($operator == "<") {
-                            $wherex .= "`" . $remainings . "` < :where" . $i;
-                        } else if ($operator == "~") {
-                            $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                        } else if ($operator == "^") {
-                            $wherex .= "`" . $remainings . "` >= :where" . $i;
-                        } else {
-                            $wherex .= "`" . $remainings . "` <= :where" . $i;
-                        }
-                    } else {
-                        $wherex .= "`" . $value . "` = :where" . $i;
-                    }
-                }
-            }
+            $q = array();
+            $wherex .= $this->QueryRecursive($q, $where);
             $query = "SELECT COUNT(*) FROM `" . $table . "` WHERE " . $wherex;
         } else {
             $query = "SELECT COUNT(*)  FROM `" . $table . "`";
@@ -229,10 +135,9 @@ class Database {
         $Statement = $this->oPDO->prepare($query);
 
         if ($where !== false) {
-            for ($i = 0; $i < count($where); $i++) {
-                $vzxx = array_values($where);
-                $vzxx = $vzxx[$i];
-                $xco = ":where" . $i;
+            foreach ($q as $key => $where) {
+                $vzxx = $where;
+                $xco = $key;
                 $Statement->bindValue($xco, $vzxx);
             }
         }
@@ -242,63 +147,17 @@ class Database {
     }
 
     public function Delete($table, $where) {
-        $wherex = "";
         $table = explode(', ', $table);
         $table = implode('`,`', $table);
-        for ($i = 0; $i < count($where); $i++) {
-            $inps = array_keys($where);
-            if ($i === 0) {
-                $value = $inps[$i];
-                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                    $operator = substr($value, 0, 1);
-                    $remainings = substr($value, 1);
-                    if ($operator == "!") {
-                        $wherex .= "`" . $remainings . "` != :where" . $i;
-                    } else if ($operator == ">") {
-                        $wherex .= "`" . $remainings . "` > :where" . $i;
-                    } else if ($operator == "<") {
-                        $wherex .= "`" . $remainings . "` < :where" . $i;
-                    } else if ($operator == "~") {
-                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                    } else if ($operator == "^") {
-                        $wherex .= "`" . $remainings . "` >= :where" . $i;
-                    } else {
-                        $wherex .= "`" . $remainings . "` <= :where" . $i;
-                    }
-                } else {
-                    $wherex .= "`" . $value . "` = :where" . $i;
-                }
-            } else {
-                $wherex .= " AND ";
-                $value = $inps[$i];
-                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                    $operator = substr($value, 0, 1);
-                    $remainings = substr($value, 1);
-                    if ($operator == "!") {
-                        $wherex .= "`" . $remainings . "` != :where" . $i;
-                    } else if ($operator == ">") {
-                        $wherex .= "`" . $remainings . "` > :where" . $i;
-                    } else if ($operator == "<") {
-                        $wherex .= "`" . $remainings . "` < :where" . $i;
-                    } else if ($operator == "~") {
-                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                    } else if ($operator == "^") {
-                        $wherex .= "`" . $remainings . "` >= :where" . $i;
-                    } else {
-                        $wherex .= "`" . $remainings . "` <= :where" . $i;
-                    }
-                } else {
-                    $wherex .= "`" . $value . "` = :where" . $i;
-                }
-            }
-        }
+        $wherex = "";
+        $q = array();
+        $wherex .= $this->QueryRecursive($q, $where);
         $query = "DELETE FROM `" . $table . "` WHERE " . $wherex;
 
         $Statement = $this->oPDO->prepare($query);
-        for ($i = 0; $i < count($where); $i++) {
-            $vzxx = array_values($where);
-            $vzxx = $vzxx[$i];
-            $xco = ":where" . $i;
+        foreach ($q as $key => $where) {
+            $vzxx = $where;
+            $xco = $key;
             $Statement->bindValue($xco, $vzxx);
         }
         $Statement->execute();
@@ -306,9 +165,56 @@ class Database {
 
     private $selecttypes = array("!", ">", "<", "~", "^", "%");
 
-    public function Edit($table, $where, $input) {
+    private function QueryRecursive(&$statement, $input, $type = false, $layer = 0) {
+        $returnstring = "";
+        if ($layer > 0) {
+            $returnstring .= "(";
+        }
+        $i = $layer * 1000;
+        foreach ($input as $new => $val) {
+            $i = $i + 1;
+            if ($returnstring != "(" && $returnstring != "") {
+                if ($type != false) {
+                    $returnstring .= " || ";
+                } else {
+                    $returnstring .= " && ";
+                }
+            }
+            if (is_array($val)) {
+                $returnstring .= $this->QueryRecursive($statement, $val, !$type, $layer + 1);
+            } else {
+                $value = $new;
+                $value = str_replace('.', '', $value);
+                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                    $operator = substr($value, 0, 1);
+                    $remainings = substr($value, 1);
+                    if ($operator == "!") {
+                        $returnstring .= "`" . $remainings . "` != :where" . $i;
+                    } else if ($operator == ">") {
+                        $returnstring .= "`" . $remainings . "` > :where" . $i;
+                    } else if ($operator == "<") {
+                        $returnstring .= "`" . $remainings . "` < :where" . $i;
+                    } else if ($operator == "~") {
+                        $returnstring .= "`" . $remainings . "` LIKE :where" . $i;
+                    } else if ($operator == "^") {
+                        $returnstring .= "`" . $remainings . "` >= :where" . $i;
+                    } else {
+                        $returnstring .= "`" . $remainings . "` <= :where" . $i;
+                    }
+                } else {
+                    $returnstring .= "`" . $value . "` = :where" . $i;
+                }
+                $statement[":where" . $i] = $val;
+            }
+        }
+        if ($layer > 0) {
+            $returnstring .= ")";
+        }
+        return $returnstring;
+    }
+
+    public function Update($table, $where, $input) {
         $valuex = "";
-        $wherex = "";
         $table = explode(', ', $table);
         $table = implode('`,`', $table);
         for ($i = 0; $i < count($input); $i++) {
@@ -319,53 +225,9 @@ class Database {
                 $valuex .= ", `" . $inps[$i] . "` = :value" . $i;
             }
         }
-        for ($i = 0; $i < count($where); $i++) {
-            $inps = array_keys($where);
-            if ($i === 0) {
-                $value = $inps[$i];
-                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                    $operator = substr($value, 0, 1);
-                    $remainings = substr($value, 1);
-                    if ($operator == "!") {
-                        $wherex .= "`" . $remainings . "` != :where" . $i;
-                    } else if ($operator == ">") {
-                        $wherex .= "`" . $remainings . "` > :where" . $i;
-                    } else if ($operator == "<") {
-                        $wherex .= "`" . $remainings . "` < :where" . $i;
-                    } else if ($operator == "~") {
-                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                    } else if ($operator == "^") {
-                        $wherex .= "`" . $remainings . "` >= :where" . $i;
-                    } else {
-                        $wherex .= "`" . $remainings . "` <= :where" . $i;
-                    }
-                } else {
-                    $wherex .= "`" . $value . "` = :where" . $i;
-                }
-            } else {
-                $wherex .= " AND ";
-                $value = $inps[$i];
-                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
-                    $operator = substr($value, 0, 1);
-                    $remainings = substr($value, 1);
-                    if ($operator == "!") {
-                        $wherex .= "`" . $remainings . "` != :where" . $i;
-                    } else if ($operator == ">") {
-                        $wherex .= "`" . $remainings . "` > :where" . $i;
-                    } else if ($operator == "<") {
-                        $wherex .= "`" . $remainings . "` < :where" . $i;
-                    } else if ($operator == "~") {
-                        $wherex .= "`" . $remainings . "` LIKE :where" . $i;
-                    } else if ($operator == "^") {
-                        $wherex .= "`" . $remainings . "` >= :where" . $i;
-                    } else {
-                        $wherex .= "`" . $remainings . "` <= :where" . $i;
-                    }
-                } else {
-                    $wherex .= "`" . $value . "` = :where" . $i;
-                }
-            }
-        }
+        $wherex = "";
+        $q = array();
+        $wherex .= $this->QueryRecursive($q, $where);
         $query = "UPDATE `" . $table . "` SET " . $valuex . " WHERE " . $wherex;
 
 
@@ -378,10 +240,9 @@ class Database {
             $Statement->bindValue($xco, $vzxx);
         }
 
-        for ($i = 0; $i < count($where); $i++) {
-            $vzxx = array_values($where);
-            $vzxx = $vzxx[$i];
-            $xco = ":where" . $i;
+        foreach ($q as $key => $where) {
+            $vzxx = $where;
+            $xco = $key;
             $Statement->bindValue($xco, $vzxx);
         }
         $Statement->execute();

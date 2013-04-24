@@ -1,5 +1,5 @@
 # PHP Database Documentation
-
+  
 ## Construct DB Class
 ```php  
 include_once('class.database.php'); //The location of the database class  
@@ -58,6 +58,12 @@ $db->SelectCount(string TableName, array Where);
 ### Example
 ```php  
 $db->SelectCount('tablename', array('email' => "example@email.com"));
+```
+
+## NOW
+### Default
+```php  
+Database::NOW();
 ```
 
 ## Where Statement

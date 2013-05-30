@@ -181,8 +181,13 @@ class Database {
                 }
             }
             if (is_array($val)) {
-                $returnstring .= $this->QueryRecursive($statement, $val, !$type, $layer + 1);
-            } else {
+    			if ($val === array_values($val)) {
+					$returnstring .= "`" . $new . "` IN('".implode("','",  $val). "') ";
+				}
+				else {
+					$returnstring .= $this->QueryRecursive($statement, $val, !$type, $layer + 1);
+				}
+			} else {
                 $value = $new;
                 $value = str_replace('.', '', $value);
                 if (in_array(substr($value, 0, 1), $this->selecttypes)) {

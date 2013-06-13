@@ -10,7 +10,7 @@ $dbpass = ""; //Database user password
 $db = new Database("mysql:host=".$dbhost.";dbname=".$dbname. ";", $dbuser, $dbpass);
 ```
 
-## Insert
+## Insert Method #1
 ### Code Pattern
 ```php  
 $db->Insert(string TableName, array Input);
@@ -19,6 +19,29 @@ $db->Insert(string TableName, array Input);
 ```php  
 $db->Insert('tablename', array('email' => "example@email.com"));
 ```
+
+
+## Insert Method #2
+### Code Pattern
+```php  
+$db->Insert(string TableName, array InputNames, array Input Array);
+```
+### Example
+```php  
+$db->Insert('tablename', array('email'), array("example@email.com"));
+```
+
+
+## Insert Method #3
+### Code Pattern
+```php  
+$db->Insert(string TableName, array Input);
+```
+### Example
+```php  
+$db->Insert('tablename', array('email'), array(array("example@email.com"),array("example2@email.com")));
+```
+
 
 ## Update
 ### Code Pattern

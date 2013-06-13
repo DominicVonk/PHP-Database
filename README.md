@@ -24,7 +24,7 @@ $db->Insert('tablename', array('email' => "example@email.com"));
 ## Insert Method #2
 ### Code Pattern
 ```php  
-$db->Insert(string TableName, array InputNames, array Input Array);
+$db->Insert(string TableName, array InputNames, array InputArray);
 ```
 ### Example
 ```php  
@@ -35,7 +35,7 @@ $db->Insert('tablename', array('email'), array("example@email.com"));
 ## Insert Method #3
 ### Code Pattern
 ```php  
-$db->Insert(string TableName, array Input);
+$db->Insert(string TableName, array InputNames, array InputArray);
 ```
 ### Example
 ```php  

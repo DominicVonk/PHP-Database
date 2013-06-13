@@ -19,38 +19,49 @@ class Database {
         return date('Y-m-d H:i:s', $date);
     }
 
-    public function Insert($table, $input) {
-        $table = explode(', ', $table);
-        $table = implode('`,`', $table);
-        $namex = "";
-        $valuex = "";
-        for ($i = 0; $i < count($input); $i++) {
-            $inps = array_keys($input);
-            if ($i === 0) {
-                $namex = "`" . $inps[$i] . "`";
-                $valuex = ":value" . $i;
-            } else {
-                $namex .= ", `" . $inps[$i] . "`";
-                $valuex .= ", :value" . $i;
+  public function Insert($table, $insertKeys, $insertValues = null) {
+        $variables = array();
+        $counts = 0;
+        $insertingKeys = $insertValues === null ? array_keys($insertKeys) : $insertKeys;
+        $sQuery = 'INSERT INTO ' . $table . ' (`' . implode('`,`', $insertingKeys) . '`) VALUES ';
+
+        if (is_array($insertValues[0]) && $insertValues !== null) {
+            foreach ($insertValues as $insertArr) {
+
+                foreach ($insertArr as $ina) {
+                    if ($counts % count($insertKeys) == 0) {
+                        $sQuery .= '(:value' . $counts . ',';
+                    } else if ($counts % count($insertKeys) == count($insertKeys) - 1) {
+                        $sQuery .= ':value' . $counts . '),';
+                    } else {
+                        $sQuery .= ':value' . $counts . ',';
+                    }
+
+                    $variables[':value' . $counts] = $ina;
+                    $counts++;
+                }
+            }
+            $sQuery = substr($sQuery, 0, strlen($sQuery) - 1);
+        } else {
+            $insertValues = ($insertValues === null) ? $insertKeys : $insertValues;
+            foreach ($insertValues as $ina) {
+                if ($counts % count($insertKeys) == 0) {
+                    $sQuery .= '(:value' . $counts . ',';
+                } else if ($counts % count($insertKeys) == count($insertKeys) - 1) {
+                    $sQuery .= ':value' . $counts . ')';
+                } else {
+                    $sQuery .= ':value' . $counts . ',';
+                }
+
+                $variables[':value' . $counts] = $ina;
+                $counts++;
             }
         }
 
-        $query = "INSERT INTO `" . $table . "` (" . $namex . ") VALUES ( " . $valuex . ")";
 
-        $Statement = $this->oPDO->prepare($query);
 
-        for ($i = 0; $i < count($input); $i++) {
-            $vzxx = array_values($input);
-            $vzxx = $vzxx[$i];
-            $xco = ":value" . $i;
-            if ($vzxx === null) {
-                $Statement->bindValue($xco, NULL, PDO::PARAM_NULL);
-            } else {
-                $Statement->bindValue($xco, $vzxx);
-            }
-        }
-
-        $Statement->execute();
+        $statement = $this->oPDO->prepare($sQuery);
+        $statement->execute($variables);
         return $this->oPDO->lastInsertId();
     }
 
@@ -163,9 +174,7 @@ class Database {
         $Statement->execute();
     }
 
-    private $selecttypes = array("!", ">", "<", "~", "^", "%");
-
-    private function QueryRecursive(&$statement, $input, $type = false, $layer = 0) {
+  public function QueryRecursive(&$statement, $input, $type = false, $layer = 0) {
         $returnstring = "";
         if ($layer > 0) {
             $returnstring .= "(";
@@ -181,16 +190,11 @@ class Database {
                 }
             }
             if (is_array($val)) {
-    			if ($val === array_values($val)) {
-					$returnstring .= "`" . $new . "` IN('".implode("','",  $val). "') ";
-				}
-				else {
-					$returnstring .= $this->QueryRecursive($statement, $val, !$type, $layer + 1);
-				}
-			} else {
+                $returnstring .= $this->QueryRecursive($statement, $val, !$type, $layer + 1);
+            } else {
                 $value = $new;
                 $value = str_replace('.', '', $value);
-                if (in_array(substr($value, 0, 1), $this->selecttypes)) {
+                if (in_array(substr($value, 0, 1), $this->selecttypes) || in_array(substr($value, 0, 2), $this->selecttypes)) {
                     $operator = substr($value, 0, 1);
                     $remainings = substr($value, 1);
                     if ($operator == "!") {
@@ -204,7 +208,14 @@ class Database {
                     } else if ($operator == "^") {
                         $returnstring .= "`" . $remainings . "` >= :where" . $i;
                     } else {
-                        $returnstring .= "`" . $remainings . "` <= :where" . $i;
+                        if ($operator == ">=") {
+                            $returnstring .= "`" . $remainings . "` >= :where" . $i;
+                        } else if ($operator == "%=") {
+                            $returnstring .= "`" . $remainings . "` LIKE :where" . $i;
+                        }  else {
+                                $returnstring .= "`" . $remainings . "` <= :where" . $i;
+                            }
+                        
                     }
                 } else {
                     $returnstring .= "`" . $value . "` = :where" . $i;

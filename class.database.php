@@ -1,5 +1,8 @@
 <?php
-
+/*
+Readme:
+https://github.com/Lacosta/PHP-Database
+*/
 class Database {
 
     private $oPDO;

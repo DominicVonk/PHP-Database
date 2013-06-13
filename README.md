@@ -114,13 +114,25 @@ $where = array("<id" => "1"); // id < '1'
 ```php  
 $where = array("^id" => "1"); // id >= '1'
 ```
+### Above or Equals
+```php  
+$where = array(">=id" => "1"); // id >= '1'
+```
 ### Below or Equals
 ```php  
 $where = array("%id" => "1"); // id <= '1'
 ```
+### Below or Equals
+```php  
+$where = array("<=id" => "1"); // id <= '1'
+```
 ### Like
 ```php  
 $where = array("~id" => "1"); // id LIKE '1'
+```
+### Like
+```php  
+$where = array("%=id" => "1"); // id LIKE '1'
 ```
 ### AND
 ```php  

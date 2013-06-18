@@ -1,8 +1,22 @@
 <?php
+
 /*
-Readme:
-https://github.com/Lacosta/PHP-Database
-*/
+ *      ######  #     # ######     ######                                                  
+ *      #     # #     # #     #    #     #   ##   #####   ##   #####    ##    ####  ###### 
+ *      #     # #     # #     #    #     #  #  #    #    #  #  #    #  #  #  #      #      
+ *      ######  ####### ######     #     # #    #   #   #    # #####  #    #  ####  #####  
+ *      #       #     # #          #     # ######   #   ###### #    # ######      # #      
+ *      #       #     # #          #     # #    #   #   #    # #    # #    # #    # #      
+ *      #       #     # #          ######  #    #   #   #    # #####  #    #  ####  ###### 
+ *
+ * 
+ *      Developed by Dominic Vonk
+ *      Date: 18-6-2013
+ *      Hypertext PreProcessor Database
+ *      Version 1.0.1 BETA
+ *      Readme:  https://github.com/Lacosta/PHP-Database
+ */
+
 class Database {
 
     private $oPDO;
@@ -22,7 +36,7 @@ class Database {
         return date('Y-m-d H:i:s', $date);
     }
 
-  public function Insert($table, $insertKeys, $insertValues = null) {
+    public function Insert($table, $insertKeys, $insertValues = null) {
         $variables = array();
         $counts = 0;
         $insertingKeys = $insertValues === null ? array_keys($insertKeys) : $insertKeys;
@@ -104,6 +118,8 @@ class Database {
         return $this->oPDO->lastInsertId();
     }
 
+    private $selecttypes = array("!", ">", "<", "~", "^", "%", ">=", "<=", "%=");
+
     public function Select($table, $name, $where = false, $limit = false, $orderby = false, $asc = true) {
         $table = explode(', ', $table);
         $table = implode('`,`', $table);
@@ -111,7 +127,7 @@ class Database {
             $wherex = "";
             $q = array();
             $wherex .= $this->QueryRecursive($q, $where);
-            
+
             $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . " FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
         } else {
             $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
@@ -126,7 +142,47 @@ class Database {
         }
         $Statement->execute();
         if ($limit === true || $limit === 1) {
-            return $Statement->fetch();
+            $output = array();
+            while ($row = $Statement->fetch()) {
+                $output = $row;
+            }
+            return $output;
+        } else {
+            $output = array();
+            while ($row = $Statement->fetch()) {
+                array_push($output, $row);
+            }
+            return $output;
+        }
+    }
+
+    public function SelectDistinct($table, $name, $where = false, $limit = false, $orderby = false, $asc = true) {
+        $table = explode(', ', $table);
+        $table = implode('`,`', $table);
+        if ($where !== false) {
+            $wherex = "";
+            $q = array();
+            $wherex .= $this->QueryRecursive($q, $where);
+
+            $query = "SELECT DISTINCT " . '`' . implode('`,`', $name) . "`" . " FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
+        } else {
+            $query = "SELECT DISTINCT " . '`' . implode('`,`', $name) . "`" . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
+        }
+        $Statement = $this->oPDO->prepare($query);
+        if ($where !== false) {
+            foreach ($q as $key => $where) {
+                $vzxx = $where;
+                $xco = $key;
+                $Statement->bindValue($xco, $vzxx);
+            }
+        }
+        $Statement->execute();
+        if ($limit === true || $limit === 1) {
+            $output = array();
+            while ($row = $Statement->fetch()) {
+                $output = $row;
+            }
+            return $output;
         } else {
             $output = array();
             while ($row = $Statement->fetch()) {
@@ -177,7 +233,7 @@ class Database {
         $Statement->execute();
     }
 
-  public function QueryRecursive(&$statement, $input, $type = false, $layer = 0) {
+    public function QueryRecursive(&$statement, $input, $type = false, $layer = 0) {
         $returnstring = "";
         if ($layer > 0) {
             $returnstring .= "(";
@@ -215,10 +271,9 @@ class Database {
                             $returnstring .= "`" . $remainings . "` >= :where" . $i;
                         } else if ($operator == "%=") {
                             $returnstring .= "`" . $remainings . "` LIKE :where" . $i;
-                        }  else {
-                                $returnstring .= "`" . $remainings . "` <= :where" . $i;
-                            }
-                        
+                        } else {
+                            $returnstring .= "`" . $remainings . "` <= :where" . $i;
+                        }
                     }
                 } else {
                     $returnstring .= "`" . $value . "` = :where" . $i;

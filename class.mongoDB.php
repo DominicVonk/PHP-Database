@@ -42,19 +42,19 @@ class PHPMongoDB {
                     $variables = array_combine($insertKeys, $iv);
 
                     $table->insert($variables);
-                    $output[] = $variables["_id"] . id;
+                    $output[] = $variables["_id"].id;
                 }
             } else {
                 $variables = array_combine($insertKeys, $insertValues);
 
                 $table->insert($variables);
-                $output = $variables["_id"] . id;
+                $output = $variables["_id"].id;
             }
         } else {
             $variables = $insertKeys;
 
             $table->insert($variables);
-            $output = $variables["_id"] . id;
+            $output = $variables["_id"].id;
         }
 
 

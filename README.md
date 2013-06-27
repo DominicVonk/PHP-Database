@@ -10,6 +10,13 @@ $dbpass = ""; //Database user password
 $db = new Database("mysql:host=".$dbhost.";dbname=".$dbname. ";", $dbuser, $dbpass);
 ```
 
+## Construct MongoDB Class
+```php  
+include_once('class.mongoDB.php'); //The location of the database class  
+$dbname = "myfirstdatabase"; //Database name  
+$db = new PHPMongoDB($dbname);
+```
+
 ## Insert Method #1
 ### Code Pattern
 ```php  

@@ -149,9 +149,7 @@ class Database {
             return $output;
         } else {
             $output = array();
-            while ($row = $Statement->fetch()) {
-                array_push($output, $row);
-            }
+            $output = $Statement->fetchAll();
             return $output;
         }
     }
@@ -179,9 +177,7 @@ class Database {
         $Statement->execute();
         if ($limit === true || $limit === 1) {
             $output = array();
-            while ($row = $Statement->fetch()) {
-                $output = $row;
-            }
+            $output = $Statement->fetchAll();
             return $output;
         } else {
             $output = array();

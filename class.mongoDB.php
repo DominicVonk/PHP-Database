@@ -48,7 +48,7 @@ class PHPMongoDB {
                 $variables = array_combine($insertKeys, $insertValues);
 
                 $table->insert($variables);
-                $output = $variables["_id"."";
+                $output = $variables["_id"]."";
             }
         } else {
             $variables = $insertKeys;

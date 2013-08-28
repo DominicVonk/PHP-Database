@@ -13,7 +13,7 @@
  *      Developed by Dominic Vonk
  *      Date: 18-6-2013
  *      Hypertext PreProcessor Database
- *      Version 1.0.1 BETA
+ *      Version 1.0.2 BETA
  *      Readme:  https://github.com/Lacosta/PHP-Database
  */
 
@@ -61,22 +61,28 @@ class Database {
             $sQuery = substr($sQuery, 0, strlen($sQuery) - 1);
         } else {
             $insertValues = ($insertValues === null) ? $insertKeys : $insertValues;
-            foreach ($insertValues as $ina) {
-                if ($counts % count($insertKeys) == 0) {
-                    $sQuery .= '(:value' . $counts . ',';
-                } else if ($counts % count($insertKeys) == count($insertKeys) - 1) {
-                    $sQuery .= ':value' . $counts . ')';
-                } else {
-                    $sQuery .= ':value' . $counts . ',';
+            if (count($insertKeys) === 1) {
+                $sQuery .= '(:value' . $counts . ')';
+                foreach($insertKeys as $a) {
+                    $variables[':value' . $counts] = $a;
                 }
-
-                $variables[':value' . $counts] = $ina;
                 $counts++;
             }
+            else {
+                foreach ($insertValues as $ina) {
+                    if ($counts % count($insertKeys) == 0) {
+                        $sQuery .= '(:value' . $counts . ',';
+                    } else if ($counts % count($insertKeys) == count($insertKeys) - 1) {
+                        $sQuery .= ':value' . $counts . ')';
+                    } else {
+                        $sQuery .= ':value' . $counts . ',';
+                    }
+
+                    $variables[':value' . $counts] = $ina;
+                    $counts++;
+                }
+            }
         }
-
-
-
         $statement = $this->oPDO->prepare($sQuery);
         $statement->execute($variables);
         return $this->oPDO->lastInsertId();

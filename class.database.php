@@ -11,7 +11,7 @@
  *
  * 
  *      Developed by Dominic Vonk
- *      Date: 18-6-2013
+ *      Date: 28-8-2013
  *      Hypertext PreProcessor Database
  *      Version 1.0.2 BETA
  *      Readme:  https://github.com/Lacosta/PHP-Database

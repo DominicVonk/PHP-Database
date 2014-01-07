@@ -242,7 +242,11 @@ class Database {
         }
         $i = $layer * 1000;
         foreach ($input as $new => $val) {
-            $i = $i + 1;
+            $run = false;
+            while(array_key_exists(":where" . $i, $statement) || $run === false) {
+                $i = $i + 1 + rand(1000000, 9999999);
+                $run = true;
+            }
             if ($returnstring != "(" && $returnstring != "") {
                 if ($type != false) {
                     $returnstring .= " || ";

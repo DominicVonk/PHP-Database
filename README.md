@@ -80,6 +80,16 @@ $db->Select(string TableName, array What, optional array Where, optional (defaul
 $db->Select('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
 ```
 
+## Select Distinct
+### Code Pattern
+```php  
+$db->SelectDistinct(string TableName, array What, optional array Where, optional (default: 0) int/bool limit , optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+```
+### Example
+```php  
+$db->SelectDistinct('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
+```
+
 ## SelectCount
 ### Code Pattern
 ```php  

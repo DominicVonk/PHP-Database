@@ -10,110 +10,114 @@ $dbpass = ""; //Database user password
 $db = new Database("mysql:host=".$dbhost.";dbname=".$dbname. ";", $dbuser, $dbpass);
 ```
 
-## Insert Method #1
-### Code Pattern
-```php  
-$db->Insert(string TableName, array Input);
+## Methods
+### Insert (Method #1)
+#### Code Pattern
+```php
+$db->Insert(string $tableName, array $input);
 ```
-### Example
+#### Example
 ```php  
 $db->Insert('tablename', array('email' => "example@email.com"));
 ```
-
-
-## Insert Method #2
-### Code Pattern
+### Insert (Method #2)
+#### Code Pattern
 ```php  
-$db->Insert(string TableName, array InputNames, array InputArray);
+$db->Insert(string $tableName, array $inputNames, array $inputArray);
 ```
-### Example
+#### Example
 ```php  
 $db->Insert('tablename', array('email'), array("example@email.com"));
 ```
-
-
-## Insert Method #3
-### Code Pattern
+### Insert (Method #3)
+#### Code Pattern
 ```php  
-$db->Insert(string TableName, array InputNames, array InputArray);
+$db->Insert(string $tableName, array $inputNames, array $inputArray);
 ```
-### Example
+#### Example
 ```php  
 $db->Insert('tablename', array('email'), array(array("example@email.com"),array("example2@email.com")));
 ```
 
-
-## Update
-### Code Pattern
+### Update
+#### Code Pattern
 ```php  
-$db->Update(string TableName, array Where, array Input);
+$db->Update(string $tableName, array $where = null, array $input = null) {
 ```
-### Example
+#### Example
 ```php  
 $db->Update('tablename', array('email' => "example@email.com"), array('email' => ""));
 ```
 
-## Delete
-### Code Pattern
+### Delete
+#### Code Pattern
 ```php  
-$db->Delete(string TableName, array Where);
+$db->Delete(string $tableName, array where = null);
 ```
-### Example
+#### Example
 ```php  
 $db->Delete('tablename', array('email' => "example@email.com"));
 ```
 
-## Select
-### Code Pattern
+### Select
+#### Code Pattern
 ```php  
-$db->Select(string TableName, array What, optional array Where, optional (default: 0) int/bool limit , optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+$db->Select(string $table, string/array $cells = null, array $where = null, boolean/int $limit = false, array/string $orderby = false, boolean $asc = true);
 ```
-### Example
+#### Example #1
 ```php  
-$db->Select('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
+$db->Select('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1"), 1, "id", true));
 ```
-## Select One
-### Code Pattern
+#### Example #2
 ```php  
-$db->SelectOne(string TableName, array What, optional array Where, optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+$db->Select('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1"), 1, array("id" => true)));
 ```
-### Example
+### Select One
+#### Code Pattern
+```php  
+$db->SelectOne(string $table, string/array $cells = null, array $where = null, array/string $orderby = false, boolean $asc = true);
+```
+#### Example
 ```php  
 $db->SelectOne('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
 ```
-## Select Distinct
-### Code Pattern
+### Select Distinct
+#### Code Pattern
 ```php  
-$db->SelectDistinct(string TableName, array What, optional array Where, optional (default: 0) int/bool limit , optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+$db->SelectDistinct(string $table, string/array $cells = null, array $where = null, boolean/int $limit = false, array/string $orderby = false, boolean $asc = true);
 ```
-### Example
+#### Example
 ```php  
 $db->SelectDistinct('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
 ```
-## Select Distinct One
-### Code Pattern
+### Select Distinct One
+#### Code Pattern
 ```php  
-$db->SelectDistinctOne(string TableName, array What, optional array Where, optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+$db->SelectDistinctOne(string $table, string/array $cells = null, array $where = null, array/string $orderby = false, boolean $asc = true);
 ```
-### Example
+#### Example
 ```php  
 $db->SelectDistinctOne('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
 ```
-## SelectCount
-### Code Pattern
+### SelectCount
+#### Code Pattern
 ```php  
 $db->SelectCount(string TableName, array Where);
 ```
-### Example
+#### Example
 ```php  
 $db->SelectCount('tablename', array('email' => "example@email.com"));
 ```
 
-## NOW
-### Default
+## Static Methods
+
+### NOW
+#### Default
 ```php  
 Database::NOW();
 ```
+
+
 
 ## Where Statement
 ### Default
@@ -173,35 +177,51 @@ $where = array("?id" => "1"); // id NOT LIKE '1'
 $where = array("!~id" => "1"); // id NOT LIKE '1'
 ```
 
-### IN
+### In
 ```php
 $where = array('id' => array(1,2)); // id IN ('1', '2')
 ```
-### NOT IN
+### Not In
 ```php
 $where = array('!id' => array(1,2)); // id NOT IN ('1', '2')
 ```
-### BETWEEN
+### Between
 ```php
 $where = array('~id' => array(1,2)); // id BETWEEN ('1', '2')
 ```
-### NOT BETWEEN
+### Not Between
 ```php
 $where = array('?id' => array(1,2)); // id BETWEEN ('1', '2')
 ```
-### NOT BETWEEN
+### Not Between
 ```php
 $where = array('!~id' => array(1,2)); // id BETWEEN ('1', '2')
 ```
-### AND
+### Other Statement
+```php
+$where = array(new DatabaseStatement('id = ?', array(1))) // id = '1'
+```
+### Database Function
+```php
+$where = array('date' => new DatabaseFunc('NOW()')) // data = NOW()
+
+
+### and
 ```php  
 $where = array("id" => "1", "name" => "Dominic"); // id = '1' AND name = 'Dominic'
 ```
-### OR
+### and or
 ```php  
 $where = array("name" => "Dominic", array("id" => "1", "id" => "2")); // name = 'Dominic' AND (id = '1' OR id = '2')
 ```
-### OR AND
+### and or and
 ```php  
 $where = array("name" => "Dominic", array("id" => "1", array("id" => "2", "key" => 1))); // name = 'Dominic' AND (id = '1' OR (id = '2' AND key = '1'))
+```
+
+
+## Select Column
+### Unescaped column
+```php
+new DatabaseColumn('COUNT(*)') // COUNT (*)
 ```

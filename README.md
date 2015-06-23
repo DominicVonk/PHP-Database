@@ -10,13 +10,6 @@ $dbpass = ""; //Database user password
 $db = new Database("mysql:host=".$dbhost.";dbname=".$dbname. ";", $dbuser, $dbpass);
 ```
 
-## Construct MongoDB Class
-```php  
-include_once('class.mongoDB.php'); //The location of the database class  
-$dbname = "myfirstdatabase"; //Database name  
-$db = new PHPMongoDB($dbname);
-```
-
 ## Insert Method #1
 ### Code Pattern
 ```php  
@@ -79,7 +72,15 @@ $db->Select(string TableName, array What, optional array Where, optional (defaul
 ```php  
 $db->Select('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
 ```
-
+## Select One
+### Code Pattern
+```php  
+$db->SelectOne(string TableName, array What, optional array Where, optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+```
+### Example
+```php  
+$db->SelectOne('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
+```
 ## Select Distinct
 ### Code Pattern
 ```php  
@@ -89,7 +90,15 @@ $db->SelectDistinct(string TableName, array What, optional array Where, optional
 ```php  
 $db->SelectDistinct('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
 ```
-
+## Select Distinct One
+### Code Pattern
+```php  
+$db->SelectDistinctOne(string TableName, array What, optional array Where, optional (default: empty) string OrderBy, optional (default: true) bool Ascending);
+```
+### Example
+```php  
+$db->SelectDistinctOne('user', array("name", "rights"), array("name" => "Dominic", array("!name" => "", "rights" => "1")));
+```
 ## SelectCount
 ### Code Pattern
 ```php  
@@ -118,6 +127,10 @@ $where = array("id" => "1"); // id = '1'
 ### Not Equals
 ```php  
 $where = array("!id" => "1"); // id != '1'
+```
+### Not Equals
+```php  
+$where = array("<>id" => "1"); // id != '1'
 ```
 ### Above
 ```php  
@@ -150,6 +163,35 @@ $where = array("~id" => "1"); // id LIKE '1'
 ### Like
 ```php  
 $where = array("%=id" => "1"); // id LIKE '1'
+```
+### Not Like
+```php  
+$where = array("?id" => "1"); // id NOT LIKE '1'
+```
+### Not Like
+```php  
+$where = array("!~id" => "1"); // id NOT LIKE '1'
+```
+
+### IN
+```php
+$where = array('id' => array(1,2)); // id IN ('1', '2')
+```
+### NOT IN
+```php
+$where = array('!id' => array(1,2)); // id NOT IN ('1', '2')
+```
+### BETWEEN
+```php
+$where = array('~id' => array(1,2)); // id BETWEEN ('1', '2')
+```
+### NOT BETWEEN
+```php
+$where = array('?id' => array(1,2)); // id BETWEEN ('1', '2')
+```
+### NOT BETWEEN
+```php
+$where = array('!~id' => array(1,2)); // id BETWEEN ('1', '2')
 ```
 ### AND
 ```php  

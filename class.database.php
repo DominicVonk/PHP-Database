@@ -13,10 +13,9 @@
  *      Developed by Dominic Vonk
  *      Date: 23-6-2015
  *      Hypertext PreProcessor Database Class (using MySQL)
- *      Version 2.0.0 BETA
+ *      Version 2.0.1 BETA
  *      Readme:  https://github.com/DominicVonk/PHP-Database
  */
-
 <?php
 class DatabaseFunc {
 	private $func;
@@ -69,7 +68,7 @@ class Database extends PDO {
 						if ($value instanceof DatabaseColumn) {
 							$args .= $value->getColumn().',';
 						} else {
-							if ($value === '*') {
+							if ($value != '*') {
 								$args .= '*,';
 							} else {
 								$args .= '`' . $value .'`,';
@@ -278,6 +277,7 @@ class Database extends PDO {
 		$query = "DELETE FROM `" . $table . "`";
 
 		if ($where) {
+			$this->whereValues = array();
 			$query .= ' WHERE ('. $this->WhereRecursive($where) .')';
 		}
 
@@ -307,6 +307,7 @@ class Database extends PDO {
 		$query = "UPDATE `" . $table . "` SET " . $_values;
 
 		if ($where) {
+			$this->whereValues = array();
 			$query .= ' WHERE ' . $this->WhereRecursive($where);
 		}
 		

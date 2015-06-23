@@ -69,7 +69,7 @@ class Database extends PDO {
 						if ($value instanceof DatabaseColumn) {
 							$args .= $value->getColumn().',';
 						} else {
-							if ($value != '*') {
+							if ($value === '*') {
 								$args .= '*,';
 							} else {
 								$args .= '`' . $value .'`,';

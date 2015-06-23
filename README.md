@@ -52,7 +52,7 @@ $db->Update('tablename', array('email' => "example@email.com"), array('email' =>
 ### Delete
 #### Code Pattern
 ```php  
-$db->Delete(string $tableName, array where = null);
+$db->Delete(string $tableName, array $where = null);
 ```
 #### Example
 ```php  
@@ -102,7 +102,7 @@ $db->SelectDistinctOne('user', array("name", "rights"), array("name" => "Dominic
 ### SelectCount
 #### Code Pattern
 ```php  
-$db->SelectCount(string TableName, array Where);
+$db->SelectCount(string $tableName, array $where = null);
 ```
 #### Example
 ```php  
@@ -204,7 +204,7 @@ $where = array(new DatabaseStatement('id = ?', array(1))) // id = '1'
 ### Database Function
 ```php
 $where = array('date' => new DatabaseFunc('NOW()')) // data = NOW()
-
+```
 
 ### and
 ```php  

@@ -11,323 +11,358 @@
  *
  * 
  *      Developed by Dominic Vonk
- *      Date: 28-8-2013
- *      Hypertext PreProcessor Database
- *      Version 1.0.2 BETA
- *      Readme:  https://github.com/Lacosta/PHP-Database
+ *      Date: 23-6-2015
+ *      Hypertext PreProcessor Database Class (using MySQL)
+ *      Version 2.0.0 BETA
+ *      Readme:  https://github.com/DominicVonk/PHP-Database
  */
 
-class Database {
-
-    private $oPDO;
-
-    public function __construct($dsn, $username = false, $passwd = false) {
-        if ($username !== false && $passwd !== false) {
-            $this->oPDO = new PDO($dsn, $username, $passwd);
-        } else if ($username !== false) {
-            $this->oPDO = new PDO($dsn, $username, "");
-        } else {
-            $this->oPDO = new PDO($dsn, "", "");
-        }
-    }
-
-    public static function NOW($date = null) {
-        $date = $date == null ? time() : $date;
-        return date('Y-m-d H:i:s', $date);
-    }
-
-    public function Insert($table, $insertKeys, $insertValues = null) {
-        $variables = array();
-        $counts = 0;
-        $insertingKeys = $insertValues === null ? array_keys($insertKeys) : $insertKeys;
-        $sQuery = 'INSERT INTO ' . $table . ' (`' . implode('`,`', $insertingKeys) . '`) VALUES ';
-
-        if (is_array($insertValues[0]) && $insertValues !== null) {
-            foreach ($insertValues as $insertArr) {
-
-                foreach ($insertArr as $ina) {
-                    if ($counts % count($insertKeys) == 0) {
-                        $sQuery .= '(:value' . $counts . ',';
-                    } else if ($counts % count($insertKeys) == count($insertKeys) - 1) {
-                        $sQuery .= ':value' . $counts . '),';
-                    } else {
-                        $sQuery .= ':value' . $counts . ',';
-                    }
-
-                    $variables[':value' . $counts] = $ina;
-                    $counts++;
-                }
-            }
-            $sQuery = substr($sQuery, 0, strlen($sQuery) - 1);
-        } else {
-            $insertValues = ($insertValues === null) ? $insertKeys : $insertValues;
-            if (count($insertKeys) === 1) {
-                $sQuery .= '(:value' . $counts . ')';
-                foreach($insertKeys as $a) {
-                    $variables[':value' . $counts] = $a;
-                }
-                $counts++;
-            }
-            else {
-                foreach ($insertValues as $ina) {
-                    if ($counts % count($insertKeys) == 0) {
-                        $sQuery .= '(:value' . $counts . ',';
-                    } else if ($counts % count($insertKeys) == count($insertKeys) - 1) {
-                        $sQuery .= ':value' . $counts . ')';
-                    } else {
-                        $sQuery .= ':value' . $counts . ',';
-                    }
-
-                    $variables[':value' . $counts] = $ina;
-                    $counts++;
-                }
-            }
-        }
-        $statement = $this->oPDO->prepare($sQuery);
-        $statement->execute($variables);
-        return $this->oPDO->lastInsertId();
-    }
-
-    public function QueryOutputFetch($query, $redefname, $limit = false) {
-        $Statement = $this->oPDO->prepare($query);
-        for ($i = 0; $i < count($redefname); $i++) {
-            $vzxx = array_values($redefname);
-            $vzxs = array_keys($redefname);
-            $vzxx = $vzxx[$i];
-            $vzxs = $vzxs[$i];
-            $xco = $vzxs;
-            $Statement->bindValue($xco, $vzxx);
-        }
-        $Statement->execute();
-        if ($limit === true || $limit === 1) {
-            return $Statement->fetch();
-        } else {
-            $output = array();
-            while ($row = $Statement->fetch()) {
-                array_push($output, $row);
-            }
-            return $output;
-        }
-    }
-
-    public function QueryOutputId($query, $redefname) {
-        $Statement = $this->oPDO->prepare($query);
-        for ($i = 0; $i < count($redefname); $i++) {
-            $vzxx = array_values($redefname);
-            $vzxs = array_keys($redefname);
-            $vzxx = $vzxx[$i];
-            $vzxs = $vzxs[$i];
-            $xco = $vzxs;
-            $Statement->bindValue($xco, $vzxx);
-        }
-        $Statement->execute();
-        return $this->oPDO->lastInsertId();
-    }
-
-    private $selecttypes = array("!", ">", "<", "~", "^", "%", ">=", "<=", "%=");
-
-    public function Select($table, $name, $where = false, $limit = false, $orderby = false, $asc = true) {
-        $table = explode(', ', $table);
-        $table = implode('`,`', $table);
-        if ($where !== false) {
-            $wherex = "";
-            $q = array();
-            $wherex .= $this->QueryRecursive($q, $where);
-
-            $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . " FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
-        } else {
-            $query = "SELECT " . ($name[0] != "*" ? '`' . implode('`,`', $name) . "`" : $name[0]) . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
-        }
-        $Statement = $this->oPDO->prepare($query);
-        if ($where !== false) {
-            foreach ($q as $key => $where) {
-                $vzxx = $where;
-                $xco = $key;
-                $Statement->bindValue($xco, $vzxx);
-            }
-        }
-        $Statement->execute();
-        if ($limit === true || $limit === 1) {
-            $output = array();
-            while ($row = $Statement->fetch()) {
-                $output = $row;
-            }
-            return $output;
-        } else {
-            $output = array();
-            $output = $Statement->fetchAll();
-            return $output;
-        }
-    }
-
-    public function SelectDistinct($table, $name, $where = false, $limit = false, $orderby = false, $asc = true) {
-        $table = explode(', ', $table);
-        $table = implode('`,`', $table);
-        if ($where !== false) {
-            $wherex = "";
-            $q = array();
-            $wherex .= $this->QueryRecursive($q, $where);
-
-            $query = "SELECT DISTINCT " . '`' . implode('`,`', $name) . "`" . " FROM `" . $table . "` WHERE " . $wherex . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
-        } else {
-            $query = "SELECT DISTINCT " . '`' . implode('`,`', $name) . "`" . "  FROM `" . $table . "`" . (($orderby !== false) ? " ORDER by " . $orderby . (($asc) ? " ASC " : " DESC ") : "") . (($limit !== false) ? " LIMIT " . $limit : "");
-        }
-        $Statement = $this->oPDO->prepare($query);
-        if ($where !== false) {
-            foreach ($q as $key => $where) {
-                $vzxx = $where;
-                $xco = $key;
-                $Statement->bindValue($xco, $vzxx);
-            }
-        }
-        $Statement->execute();
-        if ($limit === true || $limit === 1) {
-            $output = array();
-            $output = $Statement->fetchAll();
-            return $output;
-        } else {
-            $output = array();
-            while ($row = $Statement->fetch()) {
-                array_push($output, $row);
-            }
-            return $output;
-        }
-    }
-
-    public function SelectCount($table, $where = false) {
-        if ($where !== false) {
-            $wherex = "";
-            $q = array();
-            $wherex .= $this->QueryRecursive($q, $where);
-            $query = "SELECT COUNT(*) FROM `" . $table . "` WHERE " . $wherex;
-        } else {
-            $query = "SELECT COUNT(*)  FROM `" . $table . "`";
-        }
-
-        $Statement = $this->oPDO->prepare($query);
-
-        if ($where !== false) {
-            foreach ($q as $key => $where) {
-                $vzxx = $where;
-                $xco = $key;
-                $Statement->bindValue($xco, $vzxx);
-            }
-        }
-
-        $Statement->execute();
-        return $Statement->fetchColumn();
-    }
-
-    public function Delete($table, $where) {
-        $table = explode(', ', $table);
-        $table = implode('`,`', $table);
-        $wherex = "";
-        $q = array();
-        $wherex .= $this->QueryRecursive($q, $where);
-        $query = "DELETE FROM `" . $table . "` WHERE " . $wherex;
-
-        $Statement = $this->oPDO->prepare($query);
-        foreach ($q as $key => $where) {
-            $vzxx = $where;
-            $xco = $key;
-            $Statement->bindValue($xco, $vzxx);
-        }
-        $Statement->execute();
-    }
-
-    public function QueryRecursive(&$statement, $input, $type = false, $layer = 0) {
-        $returnstring = "";
-        if ($layer > 0) {
-            $returnstring .= "(";
-        }
-        $i = $layer * 1000;
-        foreach ($input as $new => $val) {
-            $run = false;
-            while(array_key_exists(":where" . $i, $statement) || $run === false) {
-                $i = $i + 1 + rand(1000000, 9999999);
-                $run = true;
-            }
-            if ($returnstring != "(" && $returnstring != "") {
-                if ($type != false) {
-                    $returnstring .= " || ";
-                } else {
-                    $returnstring .= " && ";
-                }
-            }
-            if (is_array($val)) {
-                $returnstring .= $this->QueryRecursive($statement, $val, !$type, $layer + 1);
-            } else {
-                $value = $new;
-                $value = str_replace('.', '', $value);
-                if (in_array(substr($value, 0, 1), $this->selecttypes) || in_array(substr($value, 0, 2), $this->selecttypes)) {
-                    $operator = substr($value, 0, 1);
-                    $remainings = substr($value, 1);
-                    if ($operator == "!") {
-                        $returnstring .= "`" . $remainings . "` != :where" . $i;
-                    } else if ($operator == ">") {
-                        $returnstring .= "`" . $remainings . "` > :where" . $i;
-                    } else if ($operator == "<") {
-                        $returnstring .= "`" . $remainings . "` < :where" . $i;
-                    } else if ($operator == "~") {
-                        $returnstring .= "`" . $remainings . "` LIKE :where" . $i;
-                    } else if ($operator == "^") {
-                        $returnstring .= "`" . $remainings . "` >= :where" . $i;
-                    } else {
-                        if ($operator == ">=") {
-                            $returnstring .= "`" . $remainings . "` >= :where" . $i;
-                        } else if ($operator == "%=") {
-                            $returnstring .= "`" . $remainings . "` LIKE :where" . $i;
-                        } else {
-                            $returnstring .= "`" . $remainings . "` <= :where" . $i;
-                        }
-                    }
-                } else {
-                    $returnstring .= "`" . $value . "` = :where" . $i;
-                }
-                $statement[":where" . $i] = $val;
-            }
-        }
-        if ($layer > 0) {
-            $returnstring .= ")";
-        }
-        return $returnstring;
-    }
-
-    public function Update($table, $where, $input) {
-        $valuex = "";
-        $table = explode(', ', $table);
-        $table = implode('`,`', $table);
-        for ($i = 0; $i < count($input); $i++) {
-            $inps = array_keys($input);
-            if ($i === 0) {
-                $valuex .= "`" . $inps[$i] . "` = :value" . $i;
-            } else {
-                $valuex .= ", `" . $inps[$i] . "` = :value" . $i;
-            }
-        }
-        $wherex = "";
-        $q = array();
-        $wherex .= $this->QueryRecursive($q, $where);
-        $query = "UPDATE `" . $table . "` SET " . $valuex . " WHERE " . $wherex;
-
-
-        $Statement = $this->oPDO->prepare($query);
-
-        for ($i = 0; $i < count($input); $i++) {
-            $vzxx = array_values($input);
-            $vzxx = $vzxx[$i];
-            $xco = ":value" . $i;
-            $Statement->bindValue($xco, $vzxx);
-        }
-
-        foreach ($q as $key => $where) {
-            $vzxx = $where;
-            $xco = $key;
-            $Statement->bindValue($xco, $vzxx);
-        }
-        $Statement->execute();
-    }
-
+<?php
+class DatabaseFunc {
+	private $func;
+	public function __construct($func) {
+		 $this->func = $func;
+	}
+	public function getFunction() {
+		return $this->func;
+	}
 }
+class DatabaseStatement {
+	private $statement;
+	private $args;
+	public function __construct($statement, $args = array()) {
+		 $this->statement = $statement;
+		 $this->args = $args;
+	}
+	public function getStatement() {
+		return $this->statement;
+	}
+	public function getArgs() {
+		return $this->args; 
+	}
+}
+class DatabaseColumn {
+	private $column;
+	public function __construct($column) {
+		 $this->column = $column;
+	}
+	public function getColumn() {
+		return $this->column;
+	}
+}
+class Database extends PDO {
+	private $whereValues;
+	public static function NOW($date = null) {
+		$date = $date == null ? time() : $date;
+		return date('Y-m-d H:i:s', $date);
+	}
+	public $returnWithNumbers = false;  
+	public function Select($table, $cells = null, $where = null, $limit = false, $orderby = false, $asc = true, $prep = '') {
+		$query = null;
+		$args = null;
+		if ($cells == null) {
+			$args = '*';
+		} else {
+			if (is_array($cells)) {
+				foreach($cells as $key => $value) {
+					if (is_numeric($key)) {
+						if ($value instanceof DatabaseColumn) {
+							$args .= $value->getColumn().',';
+						} else {
+							if ($value != '*') {
+								$args .= '*,';
+							} else {
+								$args .= '`' . $value .'`,';
+							}
+						}
+					} else {
+						$args .= '`' . $key . '` `' . $value .'`,'; 
+					}
+					$args = substr($args, 0, strlen($args)-1);
+				}
+			} else {
+			 $args = $cells; 
+			}
+		}
+		$query = 'SELECT' . (!empty($prep)?' ' . $prep : '')  .' '. $args . ' FROM `' . $table . '`';
+		
+		if ($where) {
+				$query .= ' WHERE';
+				$this->whereValues = array();
+			$query .= ' (' . $this->WhereRecursive($where) . ')'; 
+		}
+		if ($orderby) {
+			$_orderby = $orderby;
+			if (is_array($orderby)) {
+				$items = array();
+				foreach($orderby as $order => $asc) {
+					 array_push($items, '`' . $order . '` ' . ($asc ? 'ASC' : 'DESC'));
+				}
+				$_orderby = implode(',', $items);
+			}
+			else {
+				$_orderby = '`' . $orderby . '`';
+			}
+			$query .= ' ORDER BY ' . $_orderby .''; 
+		}
+		if (isset($orderby) && is_string($orderby)) {
+			if ($asc) {
+				$query .= ' ASC'; 
+			} else {
+				$query .= ' DESC'; 
+			}
+		}
+		if ($limit) {
+			if ($limit === 1 || $limit === true) {
+					$query .= ' LIMIT 1'; 
+			}
+			else {
+					$query .= ' LIMIT ' . $limit; 
+			}
+		}
+		$query .= ';';
+		
+		$preparedStatement = $this->prepare($query);
+		if ($where !== null) {
+			foreach ($this->whereValues as $key => $value) {
+				$preparedStatement->bindValue($key, $value);
+			}
+		}
+		$preparedStatement->execute();
+		if ($limit === true || $limit === 1) {
+			$output = array();
+			
+			if ($this->returnWithNumbers) {
+				while ($row = $preparedStatement->fetch()) {
+					$output = $row;
+				}
+			} else {
+				while ($row = $preparedStatement->fetch(PDO::FETCH_ASSOC)) {
+					$output = $row;
+				}
+			}
+			return $output;
+		} else {
+			$output = array();
+			if ($this->returnWithNumbers) {
+				$output = $preparedStatement->fetchAll();
+			} else {
+				$output = $preparedStatement->fetchAll(PDO::FETCH_ASSOC);
+			}
+			
+			return $output;
+		}
+		
+		
+	}
+	public function SelectDistinct ($table, $cells = null, $where = null, $limit = false, $orderby = false, $asc = true) {
+		return $this->Select($table, $cells, $where, $limit, $orderby, $asc, 'DISTINCT'); 
+	}
+	public function SelectCount ($table, $where = null) {
+		return $this->Select($table, array(new DatabaseColumn('COUNT(*)')), $where); 
+	}
+	public function SelectDistinctOne ($table, $cells = null, $where = null, $orderby = false, $asc = true) {
+		return $this->Select($table, $cells, $where, 1, $orderby, $asc, 'DISTINCT'); 
+	}
+	public function SelectOne ($table, $cells = null, $where = null, $orderby = false, $asc = true) {
+		return $this->Select($table, $cells, $where, 1, $orderby, $asc); 
+	}
+	public function QueryOutputFetch($query, $values, $limit = false) {
+        $preparedStatement = $this->prepare($query);
+        $preparedStatement->execute($values);
+        if ($limit === true || $limit === 1) {
+            return $preparedStatement->fetch();
+        } else {
+            $output = array();
+            while ($row = $preparedStatement->fetch()) {
+                array_push($output, $row);
+            }
+            return $output;
+        }
+    }
 
-?>
+    public function QueryOutputId($query, $values) {
+        $preparedStatement = $this->prepare($query);
+        $preparedStatement->execute($values);
+        return $this->lastInsertId();
+    }
+	private function WhereRecursive($where, $layer = 0) {
+		$query = '';
+		$newlayer = $layer+1;
+		$glue = ($layer % 2 == 0) ? ' && ' : ' || ';
+		
+		if ($layer > 0) {
+			$query = '(';
+		}
+		$queryInner = array();
+		foreach($where as $key => $value) {
+			$done = false;
+			$whereKey = ':where' . count($this->whereValues);
+			if ($value instanceof DatabaseStatement) {
+				$statement = $value->getStatement();
+				foreach($value->getArgs() as $val) {
+						$statement = preg_replace('/\?/', $whereKey, $statement, 1);
+						$this->whereValues[$whereKey] = $val;
+						$whereKey = ':where' . count($this->whereValues);
+				}
+				array_push($queryInner, $statement);
+			}
+			else if (!is_numeric($key) && is_array($value)) {
+				
+				$vals = array();
+				foreach($value as $wk) {
+					if ($wk instanceof DatabaseFunc) {
+						$wk = $wk->getFunction();
+						array_push($vals, $wk);
+					} else {
+						array_push($vals, $whereKey);
+						$this->whereValues[$whereKey] = $wk;
+						$whereKey = ':where' . count($this->whereValues);
+					}
+				}
+				switch(substr($key, 0, 2)) {
+					case '!~': array_push($queryInner, '`' . substr($key,2) . '` NOT BETWEEN ' . implode(' AND ', $vals) . ')'); $done = true; break;
+				}
+				if (!$done) {
+					switch(substr($key, 0, 1)) {
+						case '!': array_push($queryInner, '`' . substr($key, 1) . '` NOT IN (' . implode(', ', $vals) . ')'); $done = true; break;
+						case '~': array_push($queryInner, '(`' . substr($key, 1) . '` BETWEEN ' . implode(' AND ', $vals) . ')'); $done = true; break;
+						case '?': array_push($queryInner, '(`' . substr($key, 1) . '` NOT BETWEEN ' . implode(' AND ', $vals) . ')'); $done = true; break;
+					}
+				}
+				if (!$done) {
+							array_push($queryInner, '`' . $key . '` IN (' . implode(', ', $vals) . ')');
+				}
+			} else if (!is_numeric($key)) {
+				if ($value instanceof DatabaseFunc) {
+					$whereKey = $value->getFunction();
+				} else {
+					$this->whereValues[$whereKey] = $value;
+				}
+				switch(substr($key, 0, 2)) {
+					case '>=': array_push($queryInner, '`' . substr($key,2) . '` >= ' . $whereKey); $done = true; break;
+					case '<=': array_push($queryInner, '`' . substr($key,2) . '` <= ' . $whereKey); $done = true; break;
+					case '<>': array_push($queryInner, '`' . substr($key,2) . '` != ' . $whereKey); $done = true; break;
+					case '%=': array_push($queryInner, '`' . substr($key,2) . '` LIKE ' . $whereKey); $done = true; break;
+					case '!~': array_push($queryInner, '`' . substr($key,2) . '` NOT LIKE ' . $whereKey); $done = true; break;
+				}
+				if (!$done) {
+					switch(substr($key, 0, 1)) {
+						case '>': array_push($queryInner, '`' . substr($key, 1) . '` > ' . $whereKey); $done = true; break;
+						case '<': array_push($queryInner, '`' . substr($key, 1) . '` < ' . $whereKey); $done = true; break;
+						case '^': array_push($queryInner, '`' . substr($key, 1) . '` >= ' . $whereKey); $done = true; break;
+						case '%': array_push($queryInner, '`' . substr($key, 1) . '` <= ' . $whereKey); $done = true; break;
+						case '!': array_push($queryInner, '`' . substr($key, 1) . '` != ' . $whereKey); $done = true; break;
+						case '~': array_push($queryInner, '`' . substr($key, 1) . '` LIKE ' . $whereKey); $done = true; break;
+						case '?': array_push($queryInner, '`' . substr($key, 1) . '` NOT LIKE ' . $whereKey); $done = true; break;
+					}
+				}
+				if (!$done) {
+					array_push($queryInner, '`' . $key . '` = ' . $whereKey);
+				}
+			} else {
+				array_push($queryInner, $this->WhereRecursive($value, $newlayer));
+			}
+		}
+		$query .= implode($glue, $queryInner);
+		if ($layer > 0) {
+			$query .= ')';
+		}
+		return $query;
+	}
+	public function Delete($table, $where = null) {
+		$table = explode(', ', $table);
+		$table = implode('`,`', $table);
+		
+		
+		$query = "DELETE FROM `" . $table . "`";
+
+		if ($where) {
+			$query .= ' WHERE ('. $this->WhereRecursive($where) .')';
+		}
+
+		$preparedStatement = $this->prepare($query);
+		if ($where !== null) {
+			foreach ($this->whereValues as $key => $value) {
+				$preparedStatement->bindValue($key, $value);
+			}
+		}
+		$preparedStatement->execute();
+	}
+	public function Update($table, $where = null, $input = null) {
+		$values = array();
+		$table = explode(', ', $table);
+		$table = implode('`,`', $table);
+		$kValue = ':value' . count($values);
+		$_values = array();
+		foreach($input as $key => $value) {
+			if ($value instanceof DatabaseFunc) {
+				array_push($_values, '`'.$key.'` = ' . $value->getFunction());
+			} else {
+				array_push($_values, '`'.$key.'` = ' . $kValue);
+				$values[$kValue] = $value;
+			}
+		}
+		$_values = implode(', ', $_values);
+		$query = "UPDATE `" . $table . "` SET " . $_values;
+
+		if ($where) {
+			$query .= ' WHERE ' . $this->WhereRecursive($where);
+		}
+		
+		$preparedStatement = $this->prepare($query);
+
+		foreach ($values as $key => $value) {
+			$preparedStatement->bindValue($key, $value);
+		}
+		
+		if ($where !== null) {
+			foreach ($this->whereValues as $key => $value) {
+				$preparedStatement->bindValue($key, $value);
+			}
+		}
+		$preparedStatement->execute();
+	}
+	public function Insert($table, $insertKeys, $insertValues = null) {
+        $variables = array();
+        
+        $columns = array();
+        $values = array();
+        $first = true;
+        $variable = ':variable' . count($variables);
+        if ($insertValues === null) {
+        	$columns = array_keys($insertKeys);
+        	$insertValues = array(array_values($insertKeys));
+        } else {
+        	$columns = $insertKeys;
+        	if (!is_array($insertValues[0])) {
+        		$insertValues = array($insertValues);
+        	}
+        }
+
+        foreach($insertValues as $list) {
+        	$array = array();
+        	foreach($list as $value) {
+        		$variables[$variable] = $value;
+        		array_push($array, $variable);
+        		$variable = ':variable' . count($variables);
+        	}
+        	array_push($values, $array);
+        }
+
+        $columns = '(`' . implode('`, `', $columns)  .'`)';
+
+        $_values = array();
+        foreach ($values as $value) {
+        	array_push($_values, '(' . implode(', ', $value) . ')');
+        }
+
+        $values = implode(',', $_values);
+
+        $query = 'INSERT INTO `' . $table . '` ' . $columns . ' VALUES ' . $values . ';';
+
+        $statement = $this->prepare($query);
+        $statement->execute($variables);
+        return $this->lastInsertId();
+    }
+}

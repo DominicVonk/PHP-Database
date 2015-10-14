@@ -11,12 +11,11 @@
  *
  * 
  *      Developed by Dominic Vonk
- *      Date: 23-6-2015
+ *      Date: 14-10-2015
  *      Hypertext PreProcessor Database Class (using MySQL)
- *      Version 2.0.1 BETA
+ *      Version 2.0.2 BETA
  *      Readme:  https://github.com/DominicVonk/PHP-Database
  */
-<?php
 class DatabaseFunc {
 	private $func;
 	public function __construct($func) {
@@ -68,7 +67,7 @@ class Database extends PDO {
 						if ($value instanceof DatabaseColumn) {
 							$args .= $value->getColumn().',';
 						} else {
-							if ($value != '*') {
+							if ($value == '*') {
 								$args .= '*,';
 							} else {
 								$args .= '`' . $value .'`,';
@@ -77,8 +76,9 @@ class Database extends PDO {
 					} else {
 						$args .= '`' . $key . '` `' . $value .'`,'; 
 					}
-					$args = substr($args, 0, strlen($args)-1);
+
 				}
+				$args = substr($args, 0, strlen($args)-1);
 			} else {
 			 $args = $cells; 
 			}
@@ -344,9 +344,13 @@ class Database extends PDO {
         foreach($insertValues as $list) {
         	$array = array();
         	foreach($list as $value) {
-        		$variables[$variable] = $value;
-        		array_push($array, $variable);
-        		$variable = ':variable' . count($variables);
+        		if ($value instanceof DatabaseFunc) {
+					array_push($array, $value->getFunction());
+				} else {
+					$variables[$variable] = $value;
+	        		array_push($array, $variable);
+	        		$variable = ':variable' . count($variables);
+				}
         	}
         	array_push($values, $array);
         }

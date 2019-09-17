@@ -13,7 +13,7 @@
  *      Developed by Dominic Vonk
  *      Date: 14-10-2015
  *      Hypertext PreProcessor Database Class (using MySQL)
- *      Version 2.0.2 BETA
+ *      Version 2.0.3 BETA
  *      Readme:  https://github.com/DominicVonk/PHP-Database
  */
 class DatabaseFunc {
@@ -100,7 +100,11 @@ class Database extends PDO {
 				$_orderby = implode(',', $items);
 			}
 			else {
-				$_orderby = '`' . $orderby . '`';
+				if ($orderby instanceof DatabaseFunc) {
+					$_orderby = $orderby->getFunction();
+				} else {
+					$_orderby = '`' . $orderby . '`';
+				}
 			}
 			$query .= ' ORDER BY ' . $_orderby .''; 
 		}
@@ -120,11 +124,17 @@ class Database extends PDO {
 			}
 		}
 		$query .= ';';
-		
+		if (defined('DEBUG_MODE')) {
+			var_dump($query);
+		}
 		$preparedStatement = $this->prepare($query);
 		if ($where !== null) {
 			foreach ($this->whereValues as $key => $value) {
 				$preparedStatement->bindValue($key, $value);
+			}
+			
+			if (defined('DEBUG_MODE')) {
+				var_dump($this->whereValues);
 			}
 		}
 		$preparedStatement->execute();
@@ -158,7 +168,7 @@ class Database extends PDO {
 		return $this->Select($table, $cells, $where, $limit, $orderby, $asc, 'DISTINCT'); 
 	}
 	public function SelectCount ($table, $where = null) {
-		return $this->Select($table, array(new DatabaseColumn('COUNT(*)')), $where); 
+		return $this->SelectOne($table, array(new DatabaseColumn('COUNT(*)')), $where)['COUNT(*)']; 
 	}
 	public function SelectDistinctOne ($table, $cells = null, $where = null, $orderby = false, $asc = true) {
 		return $this->Select($table, $cells, $where, 1, $orderby, $asc, 'DISTINCT'); 
@@ -281,6 +291,9 @@ class Database extends PDO {
 			$query .= ' WHERE ('. $this->WhereRecursive($where) .')';
 		}
 
+		if (defined('DEBUG_MODE')) {
+			var_dump($query);
+		}
 		$preparedStatement = $this->prepare($query);
 		if ($where !== null) {
 			foreach ($this->whereValues as $key => $value) {
@@ -293,9 +306,9 @@ class Database extends PDO {
 		$values = array();
 		$table = explode(', ', $table);
 		$table = implode('`,`', $table);
-		$kValue = ':value' . count($values);
 		$_values = array();
 		foreach($input as $key => $value) {
+			$kValue = ':value' . count($values);
 			if ($value instanceof DatabaseFunc) {
 				array_push($_values, '`'.$key.'` = ' . $value->getFunction());
 			} else {
@@ -311,6 +324,9 @@ class Database extends PDO {
 			$query .= ' WHERE ' . $this->WhereRecursive($where);
 		}
 		
+		if (defined('DEBUG_MODE')) {
+			var_dump($query);
+		}
 		$preparedStatement = $this->prepare($query);
 
 		foreach ($values as $key => $value) {
@@ -322,6 +338,7 @@ class Database extends PDO {
 				$preparedStatement->bindValue($key, $value);
 			}
 		}
+		
 		$preparedStatement->execute();
 	}
 	public function Insert($table, $insertKeys, $insertValues = null) {
@@ -366,6 +383,9 @@ class Database extends PDO {
 
         $query = 'INSERT INTO `' . $table . '` ' . $columns . ' VALUES ' . $values . ';';
 
+		if (defined('DEBUG_MODE')) {
+			var_dump($query);
+		}
         $statement = $this->prepare($query);
         $statement->execute($variables);
         return $this->lastInsertId();
